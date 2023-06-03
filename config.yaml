@@ -1,0 +1,10 @@
+server:
+  port: 8080
+
+storage:
+  dataDir: ./data
+
+auth:
+  tokens:
+    - "dev-token"
+    - "prod-token"
