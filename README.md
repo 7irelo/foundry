@@ -144,6 +144,57 @@ registry-cli search mypkg --server http://localhost:8080 --token dev-token
 registry-cli delete mypkg 1.0.0 --server http://localhost:8080 --token dev-token
 ```
 
+## Storage Design
+
+Blobs are stored as:
+
+```text
+<dataDir>/blobs/<first2>/<full_sha256_hash>
+```
+
+Uploads are streamed into a temp file first, hashed during write, then atomically renamed into the final content-addressed path.
+
+## SQLite Schema
+
+```sql
+CREATE TABLE packages (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT UNIQUE NOT NULL
+);
+
+CREATE TABLE artifacts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  package_id INTEGER NOT NULL,
+  version TEXT NOT NULL,
+  hash TEXT NOT NULL,
+  size INTEGER NOT NULL,
+  uploaded_at DATETIME NOT NULL,
+  UNIQUE(package_id, version),
+  FOREIGN KEY (package_id) REFERENCES packages(id)
+);
+```
+
+## Example End-to-End Demo
+
+```bash
+# 1) Start server
+./registry-server -config ./config.yaml
+
+# 2) Push artifact
+registry-cli push demo 1.0.0 ./demo.bin --token dev-token
+
+# 3) Verify registry contents
+registry-cli list --token dev-token
+registry-cli search demo --token dev-token
+
+# 4) Pull artifact
+registry-cli pull demo 1.0.0 --output ./downloaded-demo.bin --token dev-token
+
+# 5) Delete version then collect orphaned blobs
+registry-cli delete demo 1.0.0 --token dev-token
+curl -X POST -H "Authorization: Bearer dev-token" http://localhost:8080/api/v1/gc
+```
+
 ## Testing
 
 ```bash
