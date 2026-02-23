@@ -33,7 +33,7 @@ func Load(path string) (*Config, error) {
 	}
 
 	cfg := &Config{
-		Server: ServerConfig{Port: 8080},
+		Server:  ServerConfig{Port: 8080},
 		Storage: StorageConfig{DataDir: "./data"},
 	}
 
