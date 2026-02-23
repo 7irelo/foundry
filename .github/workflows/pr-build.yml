@@ -1,4 +1,4 @@
-name: CI
+name: CI / Build
 
 on:
   pull_request:
@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   build:
-    name: Build
+    name: Go
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
